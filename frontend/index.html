@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSurf AI - Professional Security Scanner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> SafeSurf AI</h1>
+            <p class="subtitle">Professional Security Scanner | Hamid Ali, Abdul Rehman, Haider Ali | M.U.S.T</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-bar">
+            <button class="nav-btn active" data-tab="dashboard">
+                <i class="fas fa-home"></i> Dashboard
+            </button>
+            <button class="nav-btn" data-tab="website">
+                <i class="fas fa-globe"></i> Website Check
+            </button>
+            <button class="nav-btn" data-tab="wifi">
+                <i class="fas fa-wifi"></i> WiFi Security
+            </button>
+            <button class="nav-btn" data-tab="email">
+                <i class="fas fa-envelope"></i> Email Scanner
+            </button>
+            <button class="nav-btn" data-tab="threats">
+                <i class="fas fa-history"></i> Threat History
+            </button>
+            <button class="nav-btn" data-tab="reports">
+                <i class="fas fa-chart-bar"></i> Reports
+            </button>
+            <button class="nav-btn" data-tab="settings">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <h3><i class="fas fa-shield-alt"></i> Security Overview</h3>
+                            <p>Overall Security Score:</p>
+                            <div class="score-circle">
+                                <span id="overallScore">75</span>
+                            </div>
+                            <p>Last Updated: <span id="lastUpdate">Just now</span></p>
+                        </div>
+
+                        <div class="card">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Threat Summary</h3>
+                            <p>Total Threats Detected:</p>
+                            <div class="big-number" id="totalThreats">0</div>
+                            <div class="chart-container">
+                                <canvas id="threatChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3><i class="fas fa-globe"></i> Website Security</h3>
+                            <p>Average Score:</p>
+                            <div class="big-number" id="websiteScore">0%</div>
+                            <p>Scanned Sites: <span id="websiteCount"></span></p>
+                        </div>
+
+                        <div class="card">
+                            <h3><i class="fas fa-wifi"></i> WiFi Security</h3>
+                            <p>Average Score:</p>
+                            <div class="big-number" id="wifiScore">0%</div>
+                            <p>Detected Networks: <span id="wifiCount"></span></p>
+                        </div>
+
+                        <div class="card">
+                            <h3><i class="fas fa-envelope"></i> Email Security</h3>
+                            <p>Average Score:</p>
+                            <div class="big-number" id="emailScore">0%</div>
+                            <p>Scanned Emails: <span id="emailCount"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Website Check Tab -->
+                <div id="website" class="tab-content">
+                    <div class="checker-box">
+                        <h3><i class="fas fa-search"></i> Website Security Scanner</h3>
+                        <div class="input-group">
+                            <label for="websiteUrl">Enter Website URL:</label>
+                            <input type="text" id="websiteUrl" placeholder="https://example.com">
+                        </div>
+                        <div class="button-group">
+                            <button onclick="checkWebsite()">
+                                <i class="fas fa-search"></i> Basic Check
+                            </button>
+                            <button onclick="checkWebsiteAdvanced()" class="warning">
+                                <i class="fas fa-bolt"></i> Advanced Check
+                            </button>
+                            <button onclick="checkMultipleUrls()" class="success">
+                                <i class="fas fa-layer-group"></i> Batch Check
+                            </button>
+                            <button onclick="checkCurrentTab()" class="secondary">
+                                <i class="fas fa-tab"></i> Check Current Tab
+                            </button>
+                            <button onclick="checkApiStatus()" class="secondary">
+                                <i class="fas fa-plug"></i> API Status
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result-box" id="websiteResult">
+                        <!-- Results will appear here -->
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <h4>No website scanned yet</h4>
+                            <p>Enter a URL above to start scanning</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WiFi Check Tab -->
+                <div id="wifi" class="tab-content">
+                    <div class="checker-box">
+                        <h3><i class="fas fa-wifi"></i> WiFi Security Analyzer</h3>
+                        <div class="input-group">
+                            <label for="wifiName">WiFi Network Name:</label>
+                            <input type="text" id="wifiName" placeholder="e.g., Home-WiFi">
+                        </div>
+                        <div class="input-group">
+                            <label for="wifiEncryption">Encryption Type:</label>
+                            <select id="wifiEncryption">
+                                <option value="WPA2">WPA2</option>
+                                <option value="WPA3">WPA3</option>
+                                <option value="WPA">WPA</option>
+                                <option value="WEP">WEP</option>
+                                <option value="NONE">No Encryption</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="checkWifi()">
+                                <i class="fas fa-shield-alt"></i> Check Security
+                            </button>
+                            <button onclick="detectWifi()" class="secondary">
+                                <i class="fas fa-wifi"></i> Detect WiFi
+                            </button>
+                        </div>
+                        <!-- Auto controls will be added here by JavaScript -->
+                    </div>
+                    <div class="result-box" id="wifiResult">
+                        <div class="empty-state">
+                            <i class="fas fa-wifi"></i>
+                            <h4>No WiFi analyzed yet</h4>
+                            <p>Enter WiFi details above to check security</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Check Tab -->
+                <div id="email" class="tab-content">
+                    <div class="checker-box">
+                        <h3><i class="fas fa-envelope"></i> Email Phishing Detector</h3>
+                        <div class="input-group">
+                            <label for="emailSender">Sender Email:</label>
+                            <input type="email" id="emailSender" placeholder="sender@example.com">
+                        </div>
+                        <div class="input-group">
+                            <label for="emailText">Email Content:</label>
+                            <textarea id="emailText" placeholder="Paste email content here..."></textarea>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="checkEmail()">
+                                <i class="fas fa-envelope"></i> Basic Check
+                            </button>
+                            <button onclick="checkEmailAdvanced()" class="warning">
+                                <i class="fas fa-bolt"></i> Advanced Check
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result-box" id="emailResult">
+                        <div class="empty-state">
+                            <i class="fas fa-envelope"></i>
+                            <h4>No email analyzed yet</h4>
+                            <p>Enter email details above to check for phishing</p>
+                        </div>
+                    </div>
+                </div>
+
+                         
+
+                       
+            <div class="team-info">
+                <h4><i class="fas fa-users"></i> Project Team</h4>
+                <p>Hamid Ali  -------------- FA22-CSE-013</p>
+                <p>Abdul Rehman ----------        FA22-CSE-001    </p>
+                <p>Haider Ali        ----------    FA22-CSE-069</p>
+                <p>M.U.S.T University---( Mirpur University Of Sciences & Technology ) </p>
+            </div>
+
+                <!-- Threat History Tab -->
+                <div id="threats" class="tab-content">
+                    <div class="checker-box">
+                        <h3><i class="fas fa-history"></i> Threat History</h3>
+                        <div class="button-group">
+                            <button onclick="loadThreats()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button onclick="clearHistory()" class="danger">
+                                <i class="fas fa-trash"></i> Clear History
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Source</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="threatsBody">
+                                <!-- Threats will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content">
+                    <div class="checker-box">
+                        <h3><i class="fas fa-chart-bar"></i> Reports & Analytics</h3>
+                        <div class="button-group">
+                            <button onclick="showStats()">
+                                <i class="fas fa-chart-line"></i> Show Stats
+                            </button>
+                            <button onclick="generateReport()" class="success">
+                                <i class="fas fa-file-pdf"></i> Generate Report
+                            </button>
+                            <button onclick="exportCSV()" class="secondary">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result-box" id="statsDisplay">
+                        <!-- Statistics will appear here -->
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <h4>No statistics yet</h4>
+                            <p>Click "Show Stats" to generate reports</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-content">
+                    <!-- Settings will be loaded dynamically -->
+                    <div class="loading">
+                        <i class="fas fa-cog fa-spin"></i>
+                        <p>Loading settings...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- System Status -->
+                <div class="system-status">
+                    <h3><i class="fas fa-server"></i> System Status</h3>
+                    <div class="status-item">
+                        <span class="status-label">Backend:</span>
+                        <span class="status-value" id="backendStatus">Checking...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Database:</span>
+                        <span class="status-value safe">Connected</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">WiFi Detection:</span>
+                        <span class="status-value safe" id="wifiStatus">Active</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">API Keys:</span>
+                        <span class="status-value warning" id="apiStatus">3/4 Active</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Scan:</span>
+                        <span class="status-value" id="lastScan">Never</span>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div class="alerts-container">
+                    <h3><i class="fas fa-bell"></i> Recent Alerts</h3>
+                    <div id="alertsContainer">
+                        <!-- Alerts will appear here -->
+                        <div class="alert safe">
+                            <div class="alert-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-message">System initialized successfully</div>
+                                <div class="alert-time">Just now</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

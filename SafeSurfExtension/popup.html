@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SafeSurf AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            width: 400px;
+            min-height: 500px;
+            background: #0f172a;
+            color: white;
+        }
+        
+        .container {
+            padding: 16px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .online { background: #10b98120; color: #10b981; }
+        .offline { background: #ef444420; color: #ef4444; }
+        
+        /* Current Site Section */
+        .current-site {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #334155;
+        }
+        
+        .site-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .site-icon {
+            width: 40px;
+            height: 40px;
+            background: #475569;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .site-info {
+            flex: 1;
+        }
+        
+        .site-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .site-url {
+            font-size: 12px;
+            color: #94a3b8;
+            word-break: break-all;
+        }
+        
+        /* Scan Result */
+        .scan-result {
+            background: #111827;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        
+        .score {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .safe { color: #10b981; }
+        .warning { color: #f59e0b; }
+        .danger { color: #ef4444; }
+        
+        .status-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .threat-level {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Buttons */
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #334155;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* History Section */
+        .history-section {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            border: 1px solid #334155;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-count {
+            font-size: 11px;
+            color: #94a3b8;
+            background: #334155;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .threat-item {
+            background: #111827;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .threat-item:hover {
+            background: #1e293b;
+        }
+        
+        .threat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .threat-score {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .threat-url {
+            font-size: 11px;
+            color: #94a3b8;
+            word-break: break-all;
+        }
+        
+        .threat-time {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* Message */
+        .message {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 3px solid #334155;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                🛡️ SafeSurf AI
+            </div>
+            <div class="status-badge offline" id="backendStatus">Backend: Checking...</div>
+        </div>
+        
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading security scan...</p>
+        </div>
+        
+        <!-- Content -->
+        <div id="content">
+            <!-- Current Site -->
+            <div class="current-site">
+                <div class="site-header">
+                    <div class="site-icon">🌐</div>
+                    <div class="site-info">
+                        <div class="site-name" id="currentUrl">Loading website...</div>
+                        <div class="site-url" id="fullUrl"></div>
+                    </div>
+                </div>
+                
+                <div class="scan-result">
+                    <div class="score" id="scoreValue">--</div>
+                    <div class="status-text" id="statusValue">Scanning...</div>
+                    <div class="threat-level" id="threatLevel">UNKNOWN</div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="buttons">
+                <button class="btn btn-primary" id="scanBtn">
+                    🔍 Scan Now
+                </button>
+                <button class="btn btn-secondary" id="rescanBtn">
+                    🔄 Rescan
+                </button>
+                <button class="btn btn-primary" id="syncBtn">
+                    ☁️ Sync
+                </button>
+                <button class="btn btn-secondary" id="historyBtn">
+                    📜 History
+                </button>
+            </div>
+            
+            <!-- History Section -->
+            <div class="history-section">
+                <div class="section-title">
+                    Recent Scans
+                    <span class="history-count" id="historyCount">0 scans</span>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- History items will be added here -->
+                </div>
+                <div class="empty-state" id="emptyHistory">
+                    No scans yet
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message -->
+        <div class="message" id="message"></div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
