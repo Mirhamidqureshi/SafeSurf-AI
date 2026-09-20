@@ -4,358 +4,409 @@
     <meta charset="UTF-8">
     <title>SafeSurf AI</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+
         body {
-            width: 400px;
-            min-height: 500px;
+            width: 420px;
+            min-height: 560px;
             background: #0f172a;
-            color: white;
+            color: #e2e8f0;
+            font-size: 13px;
         }
-        
-        .container {
-            padding: 16px;
-        }
-        
+
+        /* ── HEADER ── */
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #334155;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
         .logo {
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 17px;
+            font-weight: 700;
             color: #3b82f6;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 8px;
         }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
+        .logo span { font-size: 20px; }
+        .header-badges { display: flex; gap: 6px; align-items: center; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
         }
-        
-        .online { background: #10b98120; color: #10b981; }
-        .offline { background: #ef444420; color: #ef4444; }
-        
-        /* Current Site Section */
-        .current-site {
+        .badge.online  { background: #10b98118; color: #10b981; border: 1px solid #10b98130; }
+        .badge.offline { background: #ef444418; color: #ef4444; border: 1px solid #ef444430; }
+        .badge.warning { background: #f59e0b18; color: #f59e0b; border: 1px solid #f59e0b30; }
+
+        /* ── LOADING ── */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 14px;
+        }
+        .spinner {
+            border: 3px solid #1e293b;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 38px; height: 38px;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MAIN CONTENT ── */
+        .content { padding: 14px 16px; display: none; }
+
+        /* ── CURRENT SITE CARD ── */
+        .site-card {
             background: #1e293b;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
+            border-radius: 14px;
+            padding: 14px;
             border: 1px solid #334155;
+            margin-bottom: 12px;
         }
-        
-        .site-header {
+        .site-row {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 12px;
         }
-        
         .site-icon {
-            width: 40px;
-            height: 40px;
-            background: #475569;
+            width: 38px; height: 38px;
+            background: #334155;
             border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+        .site-info { flex: 1; overflow: hidden; }
+        .site-name  { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .site-url   { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* score block */
+        .score-block {
+            background: #111827;
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .score-circle {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            border: 4px solid #334155;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            flex-shrink: 0;
+            font-size: 20px;
+            font-weight: 800;
         }
-        
-        .site-info {
-            flex: 1;
-        }
-        
-        .site-name {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .site-url {
-            font-size: 12px;
-            color: #94a3b8;
-            word-break: break-all;
-        }
-        
-        /* Scan Result */
-        .scan-result {
-            background: #111827;
-            padding: 16px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 12px;
-        }
-        
-        .score {
-            font-size: 42px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        
-        .safe { color: #10b981; }
-        .warning { color: #f59e0b; }
-        .danger { color: #ef4444; }
-        
-        .status-text {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .threat-level {
+        .score-circle.safe    { border-color: #10b981; color: #10b981; }
+        .score-circle.warning { border-color: #f59e0b; color: #f59e0b; }
+        .score-circle.danger  { border-color: #ef4444; color: #ef4444; }
+
+        .score-info { flex: 1; }
+        .score-status { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .score-threat {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
         }
-        
-        /* Buttons */
-        .buttons {
+        .threat-LOW      { background: #10b98118; color: #10b981; }
+        .threat-MEDIUM   { background: #f59e0b18; color: #f59e0b; }
+        .threat-HIGH     { background: #ef444418; color: #ef4444; }
+        .threat-CRITICAL { background: #ef444430; color: #ff6b6b; }
+        .threat-UNKNOWN  { background: #33415518; color: #94a3b8; }
+
+        /* ── API RESULTS STRIP ── */
+        .api-strip {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .api-chip {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .api-chip.clean   { background: #10b98112; color: #10b981; border: 1px solid #10b98120; }
+        .api-chip.danger  { background: #ef444412; color: #ef4444; border: 1px solid #ef444420; }
+        .api-chip.warning { background: #f59e0b12; color: #f59e0b; border: 1px solid #f59e0b20; }
+        .api-chip.skipped { background: #33415512; color: #64748b; border: 1px solid #33415530; }
+
+        /* ── WARNINGS LIST ── */
+        .warnings-box {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .warnings-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+        .warning-item {
+            font-size: 11px;
+            color: #cbd5e1;
+            padding: 3px 0;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        .warning-item:last-child { border-bottom: none; }
+
+        /* ── BUTTONS ── */
+        .btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 16px 0;
+            gap: 7px;
+            margin-bottom: 12px;
         }
-        
         .btn {
-            padding: 10px;
+            padding: 9px 10px;
             border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
+            gap: 5px;
+            transition: all 0.18s;
         }
-        
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-        
-        .btn-secondary {
-            background: #475569;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #334155;
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        /* History Section */
-        .history-section {
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-blue  { background: #3b82f6; color: #fff; }
+        .btn-blue:not(:disabled):hover  { background: #2563eb; }
+        .btn-slate { background: #334155; color: #e2e8f0; }
+        .btn-slate:not(:disabled):hover { background: #475569; }
+        .btn-green { background: #059669; color: #fff; }
+        .btn-green:not(:disabled):hover { background: #047857; }
+        .btn-full  { grid-column: 1 / -1; }
+
+        /* ── HISTORY ── */
+        .section-card {
             background: #1e293b;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 16px;
+            border-radius: 14px;
+            padding: 12px 14px;
             border: 1px solid #334155;
         }
-        
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 12px;
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
         }
-        
-        .history-count {
-            font-size: 11px;
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .count-pill {
+            font-size: 10px;
             color: #94a3b8;
             background: #334155;
             padding: 2px 8px;
             border-radius: 10px;
         }
-        
-        .history-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .threat-item {
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+        .history-item {
             background: #111827;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-left: 4px solid #475569;
+            border-radius: 9px;
+            padding: 8px 10px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .threat-item:hover {
-            background: #1e293b;
-        }
-        
-        .threat-header {
+            transition: background 0.15s;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
+            gap: 10px;
         }
-        
-        .threat-score {
-            font-weight: bold;
+        .history-item:hover { background: #1e293b; }
+        .history-score {
+            font-weight: 800;
             font-size: 14px;
+            flex-shrink: 0;
+            width: 34px;
+            text-align: center;
         }
-        
-        .threat-url {
-            font-size: 11px;
-            color: #94a3b8;
-            word-break: break-all;
-        }
-        
-        .threat-time {
+        .history-meta { flex: 1; overflow: hidden; }
+        .history-url  { font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-time { font-size: 10px; color: #475569; margin-top: 2px; }
+        .history-badge {
             font-size: 10px;
-            color: #64748b;
-            margin-top: 4px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+            flex-shrink: 0;
         }
-        
-        /* Message */
-        .message {
+
+        .empty-state { text-align: center; padding: 20px; color: #475569; font-size: 12px; }
+
+        /* ── OFFLINE CARD ── */
+        .offline-card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 24px 16px;
+            text-align: center;
+            border: 1px solid #334155;
+            margin-bottom: 12px;
+        }
+        .offline-icon { font-size: 38px; margin-bottom: 10px; }
+        .offline-title { font-size: 15px; font-weight: 700; color: #ef4444; margin-bottom: 6px; }
+        .offline-sub   { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+        /* ── TOAST ── */
+        .toast {
             position: fixed;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            background: #3b82f6;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
+            bottom: 10px; left: 10px; right: 10px;
+            padding: 9px 13px;
+            border-radius: 9px;
             font-size: 12px;
+            font-weight: 600;
             text-align: center;
             display: none;
             z-index: 1000;
+            animation: slideUp 0.2s ease;
         }
-        
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            display: none;
-        }
-        
-        .spinner {
-            border: 3px solid #334155;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: #64748b;
-        }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">
-                🛡️ SafeSurf AI
-            </div>
-            <div class="status-badge offline" id="backendStatus">Backend: Checking...</div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo"><span>🛡️</span> SafeSurf AI</div>
+        <div class="header-badges">
+            <div class="badge offline" id="backendStatus">● Checking...</div>
         </div>
-        
-        <!-- Loading State -->
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Loading security scan...</p>
-        </div>
-        
-        <!-- Content -->
-        <div id="content">
-            <!-- Current Site -->
-            <div class="current-site">
-                <div class="site-header">
-                    <div class="site-icon">🌐</div>
-                    <div class="site-info">
-                        <div class="site-name" id="currentUrl">Loading website...</div>
-                        <div class="site-url" id="fullUrl"></div>
-                    </div>
-                </div>
-                
-                <div class="scan-result">
-                    <div class="score" id="scoreValue">--</div>
-                    <div class="status-text" id="statusValue">Scanning...</div>
-                    <div class="threat-level" id="threatLevel">UNKNOWN</div>
-                </div>
-            </div>
-            
-            <!-- Buttons -->
-            <div class="buttons">
-                <button class="btn btn-primary" id="scanBtn">
-                    🔍 Scan Now
-                </button>
-                <button class="btn btn-secondary" id="rescanBtn">
-                    🔄 Rescan
-                </button>
-                <button class="btn btn-primary" id="syncBtn">
-                    ☁️ Sync
-                </button>
-                <button class="btn btn-secondary" id="historyBtn">
-                    📜 History
-                </button>
-            </div>
-            
-            <!-- History Section -->
-            <div class="history-section">
-                <div class="section-title">
-                    Recent Scans
-                    <span class="history-count" id="historyCount">0 scans</span>
-                </div>
-                <div class="history-list" id="historyList">
-                    <!-- History items will be added here -->
-                </div>
-                <div class="empty-state" id="emptyHistory">
-                    No scans yet
-                </div>
-            </div>
-        </div>
-        
-        <!-- Message -->
-        <div class="message" id="message"></div>
     </div>
-    
+
+    <!-- LOADING -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p style="color:#64748b;font-size:12px;">Scanning current page...</p>
+    </div>
+
+    <!-- OFFLINE -->
+    <div class="content" id="offlineContent">
+        <div class="offline-card">
+            <div class="offline-icon">🔌</div>
+            <div class="offline-title">Backend Offline</div>
+            <div class="offline-sub">
+                Start the SafeSurf backend server<br>
+                <code style="color:#3b82f6">python app.py</code><br><br>
+                Limited local scanning is available.
+            </div>
+        </div>
+        <div class="site-card" id="offlineSiteCard" style="display:none">
+            <div class="site-row">
+                <div class="site-icon">🌐</div>
+                <div class="site-info">
+                    <div class="site-name" id="offlineSiteName">—</div>
+                    <div class="site-url"  id="offlineSiteUrl"></div>
+                </div>
+            </div>
+            <div class="score-block">
+                <div class="score-circle" id="offlineScoreCircle">--</div>
+                <div class="score-info">
+                    <div class="score-status" id="offlineStatus">Local Scan Only</div>
+                    <div class="score-threat threat-UNKNOWN" id="offlineThreat">UNKNOWN</div>
+                    <div style="font-size:10px;color:#64748b;margin-top:4px;">⚠️ Local heuristics only</div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-grid">
+            <button class="btn btn-blue btn-full" id="offlineScanBtn">🔍 Local Scan</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content" id="mainContent">
+
+        <!-- Current Site Card -->
+        <div class="site-card">
+            <div class="site-row">
+                <div class="site-icon" id="siteIcon">🌐</div>
+                <div class="site-info">
+                    <div class="site-name" id="siteName">Loading...</div>
+                    <div class="site-url"  id="siteUrl"></div>
+                </div>
+            </div>
+
+            <div class="score-block">
+                <div class="score-circle" id="scoreCircle">--</div>
+                <div class="score-info">
+                    <div class="score-status" id="scoreStatus">Scanning...</div>
+                    <div class="score-threat threat-UNKNOWN" id="threatBadge">UNKNOWN</div>
+                    <!-- API chips -->
+                    <div class="api-strip" id="apiStrip" style="display:none"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warnings -->
+        <div class="warnings-box" id="warningsBox">
+            <div class="warnings-title">⚠️ Security Findings</div>
+            <div id="warningsList"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-grid">
+            <button class="btn btn-blue"  id="scanBtn">🔍 Deep Scan</button>
+            <button class="btn btn-slate" id="rescanBtn">🔄 Rescan</button>
+            <button class="btn btn-green" id="syncBtn">☁️ Sync</button>
+            <button class="btn btn-slate" id="historyBtn">📜 History</button>
+        </div>
+
+        <!-- History -->
+        <div class="section-card">
+            <div class="section-header">
+                <span class="section-label">Recent Scans</span>
+                <span class="count-pill" id="historyCount">0 scans</span>
+            </div>
+            <div class="history-list"  id="historyList"></div>
+            <div class="empty-state"   id="emptyHistory">No scans yet — browse a website to start</div>
+        </div>
+
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script src="popup.js"></script>
 </body>
 </html>

@@ -1,0 +1,50 @@
+# ============================================================
+# SafeSurf AI — .gitignore
+# ============================================================
+
+# ── Environment & Secrets ────────────────────────────────────
+backend/.env
+.env
+*.env
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── Database ─────────────────────────────────────────────────
+# Keep root threats.db out but keep backend one tracked if needed
+threats.db
+
+# ── IDE & Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Build / Dist ─────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+desktop.ini

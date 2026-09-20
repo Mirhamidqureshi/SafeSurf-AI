@@ -279,16 +279,31 @@ function displayAdvancedWebsiteResult(data) {
         `;
         
         Object.entries(data.api_summary).forEach(([api, result]) => {
-            const icon = result.includes('Clean') || result.includes('Not') ? '✅' : 
-                        result.includes('Threats') || result.includes('Phishing') ? '🚨' : '⚠️';
-            const resultClass = result.includes('Clean') ? 'safe' : 
-                              result.includes('Threats') ? 'danger' : 'warning';
-            
+            // Skip internal permalink keys — they are shown as links, not columns
+            if (api.endsWith('_permalink')) return;
+
+            const icon = (result.includes('Clean') || result.includes('No threats') || result.includes('Skipped'))
+                        ? '✅'
+                        : (result.includes('🚨') || result.includes('MALICIOUS') || result.includes('flagged'))
+                        ? '🚨' : '⚠️';
+
+            const resultClass = icon === '✅' ? 'safe' : icon === '🚨' ? 'danger' : 'warning';
+
+            // Check if there's a permalink for this API (e.g. VirusTotal)
+            const permalink = data.api_summary[`${api}_permalink`];
+            const linkHTML = permalink
+                ? `<a href="${permalink}" target="_blank" rel="noopener noreferrer"
+                      style="font-size:10px;color:#818cf8;text-decoration:none;margin-top:4px;display:inline-block;">
+                      🔗 View Full Report
+                   </a>`
+                : '';
+
             resultHTML += `
                 <div class="api-item">
                     <div class="api-name">${api}</div>
                     <div class="api-result ${resultClass}">
                         ${icon} ${result}
+                        ${linkHTML}
                     </div>
                 </div>
             `;
@@ -508,13 +523,18 @@ async function checkWifi() {
 function displayWifiResult(data) {
     const resultBox = document.getElementById('wifiResult');
     
+    // Signal bar helper
+    const sig = data.signal_strength || 0;
+    const sigBar = sig >= 75 ? '▰▰▰▰▰' : sig >= 50 ? '▰▰▰▰▱' : sig >= 25 ? '▰▰▰▱▱' : '▰▰▱▱▱';
+    const sigColor = sig >= 70 ? '#10b981' : sig >= 40 ? '#f59e0b' : '#ef4444';
+
     let resultHTML = `
         <div class="advanced-result">
             <h3><i class="fas fa-wifi"></i> WiFi Analysis: ${data.wifi_name}</h3>
             
             <div class="score-header ${getScoreClass(data.score)}">
                 <div class="main-score">${data.score}/100</div>
-                <div class="main-status">${data.encryption || 'Unknown'}</div>
+                <div class="main-status">${data.status || (data.score >= 70 ? '✅ SECURE' : data.score >= 40 ? '⚠️ MODERATE' : '🚨 INSECURE')}</div>
             </div>
             
             <div class="verdict-box">
@@ -537,6 +557,33 @@ function displayWifiResult(data) {
                         <span class="detail-label">Risk Level:</span>
                         <span class="detail-value ${getScoreClass(data.score)}">${getRiskLevel(data.score)}</span>
                     </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Signal Strength:</span>
+                        <span class="detail-value" style="color:${sigColor}" title="${sig}%">
+                            ${sigBar} ${sig}%
+                        </span>
+                    </div>
+                    ${data.band ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Band:</span>
+                        <span class="detail-value">${data.band}</span>
+                    </div>` : ''}
+                    ${data.channel ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Channel:</span>
+                        <span class="detail-value">${data.channel}</span>
+                    </div>` : ''}
+                    ${data.bssid ? `
+                    <div class="detail-item">
+                        <span class="detail-label">BSSID:</span>
+                        <span class="detail-value" style="font-family:monospace;font-size:11px;">${data.bssid}</span>
+                    </div>` : ''}
+                    <div class="detail-item">
+                        <span class="detail-label">Data Source:</span>
+                        <span class="detail-value" style="color:${data.real_data ? '#10b981' : '#f59e0b'}">
+                            ${data.real_data ? '✅ Real Detection' : '⚠️ Manual Input'}
+                        </span>
+                    </div>
                 </div>
             </div>
     `;
@@ -547,11 +594,9 @@ function displayWifiResult(data) {
                 <h4><i class="fas fa-lightbulb"></i> Security Recommendations:</h4>
                 <ul>
         `;
-        
         data.recommendations.forEach(rec => {
             resultHTML += `<li><i class="fas fa-check-circle"></i> ${rec}</li>`;
         });
-        
         resultHTML += '</ul></div>';
     }
     
@@ -564,7 +609,7 @@ function displayWifiResult(data) {
     
     resultBox.innerHTML = resultHTML;
     
-    addAlert(`WiFi checked: ${data.wifi_name} - Score: ${data.score}`, 
+    addAlert(`WiFi checked: ${data.wifi_name} — Score: ${data.score}`, 
              data.score >= 70 ? 'safe' : data.score >= 40 ? 'warning' : 'danger');
     loadInitialData();
 }
@@ -599,76 +644,56 @@ async function autoDetectAndCheckWifi() {
     console.log('🔍 Auto-detecting WiFi networks...');
     
     try {
-        const wifiList = await detectAvailableWifis();
-        
-        // Check each WiFi
-        for (const wifi of wifiList) {
-            // Skip if already detected
-            if (detectedWifis.has(wifi.name)) {
-                continue;
-            }
-            
-            // Mark as detected
-            detectedWifis.add(wifi.name);
-            
-            // Auto-check this WiFi
-            await autoCheckWifi(wifi.name, wifi.encryption);
-            
-            // Add delay between checks
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
+        // Always use real backend detection
+        const response = await fetch(`${BACKEND_URL}/get-current-wifi`, { method: 'GET' });
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (!data.wifi_name || data.wifi_name === 'Not Connected') return;
+
+        // Skip if already checked this network name this session
+        if (detectedWifis.has(data.wifi_name)) return;
+        detectedWifis.add(data.wifi_name);
+
+        addAlert(`Auto-detected WiFi: ${data.wifi_name} (${data.encryption}) — Score: ${data.score}/100`,
+                 data.score >= 70 ? 'safe' : data.score >= 40 ? 'warning' : 'danger');
+
+        // Update fields if user is on WiFi tab
+        updateWifiFields(data.wifi_name, data.encryption || 'WPA2');
+
+        loadInitialData();
+
     } catch (error) {
         console.error('❌ Auto WiFi detection error:', error);
     }
 }
 
 async function detectAvailableWifis() {
+    // Use real backend WiFi detection — never generate fake data
     try {
-        // Try to get real WiFi info if available (for browser extensions)
-        if (navigator.connection) {
-            const connection = navigator.connection;
+        const response = await fetch(`${BACKEND_URL}/get-current-wifi`, { method: 'GET' });
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        const data = await response.json();
+        if (data.wifi_name && data.wifi_name !== 'Not Connected' && data.wifi_name !== 'Detection failed') {
             return [{
-                name: connection.effectiveType || 'Unknown',
-                encryption: 'WPA2', // Default assumption
-                signal: 85 // Simulated signal strength
+                name: data.wifi_name,
+                encryption: data.encryption || 'WPA2',
+                signal: data.signal_strength || 80,
+                band: data.band || 'Unknown',
+                channel: data.channel || null
             }];
         }
-        
-        // Fallback to simulation
-        return generateRandomWifiList();
-        
+        return [];
     } catch (error) {
-        console.error('WiFi detection failed:', error);
-        return generateRandomWifiList();
+        console.error('Backend WiFi detection failed:', error);
+        return [];
     }
 }
 
 function generateRandomWifiList() {
-    const wifiNames = [
-        'Home-WiFi', 'Office-Network', 'Public-WiFi', 'Guest-Network',
-        'AndroidAP', 'iPhone Hotspot', 'TP-Link_2G', 'DLink-Router',
-        'Cafe-Free-WiFi', 'Hotel-Guest', 'Airport-Free', 'Mall-WiFi'
-    ];
-    
-    const encryptions = ['WPA2', 'WPA3', 'WPA', 'WEP', 'NONE'];
-    
-    // Generate 1-3 random WiFi networks
-    const count = Math.floor(Math.random() * 3) + 1;
-    const wifiList = [];
-    
-    for (let i = 0; i < count; i++) {
-        const randomName = wifiNames[Math.floor(Math.random() * wifiNames.length)];
-        const randomEncryption = encryptions[Math.floor(Math.random() * encryptions.length)];
-        
-        wifiList.push({
-            name: randomName,
-            encryption: randomEncryption,
-            signal: Math.floor(Math.random() * 100) + 1
-        });
-    }
-    
-    return wifiList;
+    // Kept for reference only — NOT used anymore.
+    // Real detection now uses /get-current-wifi backend endpoint.
+    return [];
 }
 
 async function autoCheckWifi(wifiName, encryption) {
@@ -713,18 +738,43 @@ function updateWifiFields(name, encryption) {
 }
 
 // ==================== MANUAL WIFI DETECTION ====================
-function detectWifi() {
-    const wifiList = generateRandomWifiList();
-    
-    if (wifiList.length > 0) {
-        const wifi = wifiList[0];
-        document.getElementById('wifiName').value = wifi.name;
-        document.getElementById('wifiEncryption').value = wifi.encryption;
-        
-        addAlert(`Detected WiFi: ${wifi.name} (${wifi.encryption}) - Signal: ${wifi.signal}%`, 'safe');
-        
-        // Auto-check this WiFi
-        autoCheckWifi(wifi.name, wifi.encryption);
+async function detectWifi() {
+    const resultBox = document.getElementById('wifiResult');
+    if (resultBox) {
+        resultBox.innerHTML = '<div class="loading"><i class="fas fa-wifi fa-spin"></i> Detecting your WiFi network...</div>';
+    }
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/get-current-wifi`, { method: 'GET' });
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        const data = await response.json();
+
+        if (data.wifi_name && data.wifi_name !== 'Not Connected') {
+            // Populate input fields
+            const nameInput = document.getElementById('wifiName');
+            const encInput  = document.getElementById('wifiEncryption');
+            if (nameInput) nameInput.value = data.wifi_name;
+            if (encInput)  encInput.value  = data.encryption || 'WPA2';
+
+            // Show result directly from real data
+            displayWifiResult(data);
+            addAlert(`Detected WiFi: ${data.wifi_name} (${data.encryption}) — Score: ${data.score}/100`,
+                     data.score >= 70 ? 'safe' : data.score >= 40 ? 'warning' : 'danger');
+        } else {
+            addAlert('No WiFi connection detected. Connect to a network and try again.', 'warning');
+            if (resultBox) {
+                resultBox.innerHTML = `<div class="error">
+                    <i class="fas fa-wifi-slash"></i> No WiFi network detected.<br>
+                    <small>Connect to a WiFi network, then click Detect again.</small>
+                </div>`;
+            }
+        }
+    } catch (error) {
+        console.error('detectWifi error:', error);
+        addAlert('WiFi detection failed: ' + error.message, 'danger');
+        if (resultBox) {
+            resultBox.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> Detection failed: ${error.message}</div>`;
+        }
     }
 }
 
@@ -967,6 +1017,71 @@ function displayAdvancedEmailResult(data) {
         });
         
         resultHTML += '</ul></div>';
+    }
+
+    // ========== LINK SCAN RESULTS (VirusTotal) ==========
+    if (data.link_scan_results && data.link_scan_results.length > 0) {
+        const vtSummary = data.link_vt_summary || {};
+        const hasDanger  = (vtSummary.malicious  || 0) > 0;
+        const hasWarning = (vtSummary.suspicious || 0) > 0;
+        const summaryClass = hasDanger ? 'danger' : hasWarning ? 'warning' : 'safe';
+
+        resultHTML += `
+            <div class="link-scan-section">
+                <h4><i class="fas fa-virus-slash"></i> VirusTotal Link Scan
+                    <span class="vt-badge ${summaryClass}">
+                        ${vtSummary.scanned || 0} scanned &nbsp;|&nbsp;
+                        🚨 ${vtSummary.malicious || 0} malicious &nbsp;|&nbsp;
+                        ⚠️ ${vtSummary.suspicious || 0} suspicious &nbsp;|&nbsp;
+                        ✅ ${vtSummary.clean || 0} clean
+                    </span>
+                </h4>
+                <div class="link-scan-list">
+        `;
+
+        data.link_scan_results.forEach(link => {
+            const statusClass = link.status && link.status.includes('🚨') ? 'link-danger'
+                              : link.status && link.status.includes('⚠️') ? 'link-warning'
+                              : link.status && link.status.includes('✅') ? 'link-safe'
+                              : 'link-unknown';
+
+            const vtVendors = link.total_vendors
+                ? `<span class="vt-vendors">${link.malicious}/${link.total_vendors} vendors</span>`
+                : '';
+
+            const vtLink = link.permalink
+                ? `<a href="${link.permalink}" target="_blank" rel="noopener noreferrer"
+                      class="vt-report-link" title="View on VirusTotal">
+                       <i class="fas fa-external-link-alt"></i> VT Report
+                   </a>`
+                : '';
+
+            resultHTML += `
+                <div class="link-scan-item ${statusClass}">
+                    <div class="link-scan-status">${link.status || '⚠️ UNKNOWN'}</div>
+                    <div class="link-scan-url" title="${link.url}">${truncateText(link.url, 55)}</div>
+                    <div class="link-scan-meta">
+                        <span class="vt-summary-text">${link.summary || ''}</span>
+                        ${vtVendors}
+                        ${vtLink}
+                    </div>
+                </div>
+            `;
+        });
+
+        resultHTML += `
+                </div>
+            </div>
+        `;
+    } else if (data.links_found && data.links_found > 0) {
+        // Links found but VT results not available (e.g. API key missing)
+        resultHTML += `
+            <div class="link-scan-section link-scan-unavailable">
+                <h4><i class="fas fa-link"></i> Links in Email (${data.links_found} found)</h4>
+                <p><i class="fas fa-exclamation-circle"></i>
+                   VirusTotal scan unavailable — verify these links manually before clicking.</p>
+            </div>
+        `;
     }
     
     resultHTML += `

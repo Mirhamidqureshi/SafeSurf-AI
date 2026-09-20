@@ -1044,3 +1044,113 @@ body.blue-theme {
         width: 100% !important;
     }
 }
+
+/* ========== LINK SCAN SECTION (VirusTotal Email Links) ========== */
+.link-scan-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1rem;
+    border-left: 3px solid #6366f1;
+}
+
+.link-scan-section h4 {
+    color: #a5b4fc;
+    margin: 0 0 1rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.vt-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: auto;
+}
+
+.vt-badge.safe    { background: #10b98122; color: #10b981; border: 1px solid #10b98144; }
+.vt-badge.warning { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
+.vt-badge.danger  { background: #ef444422; color: #ef4444; border: 1px solid #ef444444; }
+
+.link-scan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.link-scan-item {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+}
+
+.link-scan-item.link-safe    { background: #10b98110; border-color: #10b981; }
+.link-scan-item.link-warning { background: #f59e0b10; border-color: #f59e0b; }
+.link-scan-item.link-danger  { background: #ef444415; border-color: #ef4444; }
+.link-scan-item.link-unknown { background: rgba(255,255,255,0.04); border-color: #6b7280; }
+
+.link-scan-status {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+}
+
+.link-scan-url {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    word-break: break-all;
+    margin-bottom: 0.3rem;
+    font-family: 'Courier New', monospace;
+}
+
+.link-scan-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+}
+
+.vt-summary-text {
+    font-size: 0.78rem;
+    color: #cbd5e1;
+}
+
+.vt-vendors {
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.08);
+    color: #94a3b8;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.vt-report-link {
+    font-size: 0.75rem;
+    color: #818cf8;
+    text-decoration: none;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #818cf830;
+    transition: all 0.2s;
+}
+
+.vt-report-link:hover {
+    background: #818cf815;
+    color: #a5b4fc;
+    border-color: #818cf860;
+}
+
+.link-scan-unavailable {
+    border-left-color: #6b7280;
+}
+
+.link-scan-unavailable p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0;
+}
